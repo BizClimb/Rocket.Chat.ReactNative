@@ -53,19 +53,11 @@ save-gems-cache: &save-gems-cache
   paths:
     - vendor/bundle
 
-update-fastlane-ios: &update-fastlane-ios
+update-fastlane: &update-fastlane
   name: Update Fastlane
   command: |
     echo "ruby-2.6.4" > ~/.ruby-version
     bundle install && bundle update
-  working_directory: ios
-
-update-fastlane-android: &update-fastlane-android
-  name: Update Fastlane
-  command: |
-    echo "ruby-2.6.4" > ~/.ruby-version
-    bundle install && bundle update
-  working_directory: android
 
 save-gradle-cache: &save-gradle-cache
   name: Save gradle cache
@@ -137,6 +129,13 @@ commands:
           name: Test
           command: |
             npx detox test << parameters.folder >> --configuration ios.sim.release --cleanup
+
+  update-fastlane:
+    parameters:
+      working_directory:
+        type: string
+    steps:
+      - run: *update-fastlane
 
 # JOBS
 jobs:
@@ -244,7 +243,8 @@ jobs:
 
       - run: *install-npm-modules
 
-      - run: *update-fastlane-android
+      - update-fastlane:
+          working_directory: "android"
 
       - restore_cache: *restore-gradle-cache
 
@@ -333,7 +333,8 @@ jobs:
           command: echo "$FASTLANE_GOOGLE_SERVICE_ACCOUNT" | base64 --decode > service_account.json
           working_directory: android
 
-      - run: *update-fastlane-android
+      - update-fastlane:
+          working_directory: "android"
 
       - restore_cache: *restore-gradle-cache
 
@@ -363,7 +364,8 @@ jobs:
 
       - run: *install-npm-modules
 
-      - run: *update-fastlane-ios
+      - update-fastlane:
+          working_directory: "ios"
 
       - run:
           name: Set Google Services
@@ -425,7 +427,8 @@ jobs:
 
       - restore_cache: *restore-gems-cache
 
-      - run: *update-fastlane-ios
+      - update-fastlane:
+          working_directory: "ios"
 
       - run:
           name: Fastlane Tesflight Upload
